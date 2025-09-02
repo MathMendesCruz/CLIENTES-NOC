@@ -53,7 +53,7 @@ if file_logins and file_base:
         df_base['__login_proc__'] = df_base[login_col_base].astype(str).str.strip().str.lower()
 
         # Faz o merge para buscar nome e whatsapp pelo login
-        resultado = df_base[df_base['__login_proc__'].isin(logins_proc)][
+        resultado_encontrados = df_base[df_base['__login_proc__'].isin(logins_proc)][
             [login_col_base, nome_col_base, whatsapp_col_base]
         ].rename(
             columns={
@@ -64,21 +64,31 @@ if file_logins and file_base:
         )
 
         # Identifica logins não encontrados
-        logins_encontrados = set(resultado["Login"].astype(str).str.strip().str.lower())
+        logins_encontrados = set(resultado_encontrados["Login"].astype(str).str.strip().str.lower())
         logins_nao_encontrados = [login for login in logins_proc if login not in logins_encontrados]
 
-        st.success(f"Encontrados {len(resultado)} clientes com login correspondente.")
-        st.dataframe(resultado, use_container_width=True)
+        # DataFrame dos não encontrados
+        resultado_nao_encontrados = pd.DataFrame({
+            "Login": logins_nao_encontrados
+        })
 
-        if logins_nao_encontrados:
-            st.warning(f"{len(logins_nao_encontrados)} logins/clientes não encontrados:")
-            st.code("\n".join(logins_nao_encontrados), language="text")
-
-        csv = resultado.to_csv(index=False, sep=';', encoding='utf-8')
+        st.success(f"Encontrados {len(resultado_encontrados)} clientes com login correspondente.")
+        st.dataframe(resultado_encontrados, use_container_width=True)
+        csv_encontrados = resultado_encontrados.to_csv(index=False, sep=';', encoding='utf-8')
         st.download_button(
-            label="📥 Baixar resultado em CSV",
-            data=csv,
-            file_name="relatorio_clientes.csv",
+            label="📥 Baixar resultado encontrados em CSV",
+            data=csv_encontrados,
+            file_name="clientes_encontrados.csv",
+            mime="text/csv"
+        )
+
+        st.warning(f"{len(logins_nao_encontrados)} logins/clientes não encontrados:")
+        st.dataframe(resultado_nao_encontrados, use_container_width=True)
+        csv_nao_encontrados = resultado_nao_encontrados.to_csv(index=False, sep=';', encoding='utf-8')
+        st.download_button(
+            label="📥 Baixar resultado não encontrados em CSV",
+            data=csv_nao_encontrados,
+            file_name="clientes_nao_encontrados.csv",
             mime="text/csv"
         )
 else:
