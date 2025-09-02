@@ -113,6 +113,15 @@ if uploaded_file:
             df_formatado = df[[col_nome, col_whatsapp]].copy()
             df_formatado.columns = ["name", "whatsapp"]
 
+            # Adiciona os contatos fixos ao final
+            contatos_fixos = [
+                {"name": "Daniel", "whatsapp": "(11) 9479-81529"},
+                {"name": "Mateus", "whatsapp": "(11) 99190-5547"},
+                {"name": "Leonel", "whatsapp": "(11) 91302-7842"},
+                {"name": "Matheus", "whatsapp": "(11) 94887-6252"},
+            ]
+            df_formatado = pd.concat([df_formatado, pd.DataFrame(contatos_fixos)], ignore_index=True)
+
             st.success("Colunas selecionadas com sucesso!")
             st.subheader("Pré-visualização:")
             st.dataframe(df_formatado)
