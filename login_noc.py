@@ -63,8 +63,16 @@ if file_logins and file_base:
             }
         )
 
+        # Identifica logins não encontrados
+        logins_encontrados = set(resultado["Login"].astype(str).str.strip().str.lower())
+        logins_nao_encontrados = [login for login in logins_proc if login not in logins_encontrados]
+
         st.success(f"Encontrados {len(resultado)} clientes com login correspondente.")
         st.dataframe(resultado, use_container_width=True)
+
+        if logins_nao_encontrados:
+            st.warning(f"{len(logins_nao_encontrados)} logins/clientes não encontrados:")
+            st.code("\n".join(logins_nao_encontrados), language="text")
 
         csv = resultado.to_csv(index=False, sep=';', encoding='utf-8')
         st.download_button(
@@ -109,6 +117,19 @@ if uploaded_file:
             key="whatsapp_formatador"
         )
 
+        # Lista para novos contatos
+        if "novos_contatos" not in st.session_state:
+            st.session_state["novos_contatos"] = []
+
+        st.subheader("Adicionar novo contato manualmente:")
+        with st.form("adicionar_contato"):
+            novo_nome = st.text_input("Nome do contato")
+            novo_whatsapp = st.text_input("WhatsApp do contato")
+            adicionar = st.form_submit_button("Adicionar contato")
+        if adicionar and novo_nome and novo_whatsapp:
+            st.session_state["novos_contatos"].append({"name": novo_nome, "whatsapp": novo_whatsapp})
+            st.success(f"Contato '{novo_nome}' adicionado!")
+
         if col_nome and col_whatsapp:
             df_formatado = df[[col_nome, col_whatsapp]].copy()
             df_formatado.columns = ["name", "whatsapp"]
@@ -120,16 +141,15 @@ if uploaded_file:
                 {"name": "Leonel", "whatsapp": "(11) 91302-7842"},
                 {"name": "Matheus", "whatsapp": "(11) 94887-6252"},
             ]
-            df_formatado = pd.concat([df_formatado, pd.DataFrame(contatos_fixos)], ignore_index=True)
+            # Adiciona os contatos manuais
+            contatos_adicionais = st.session_state["novos_contatos"]
+            df_formatado = pd.concat([df_formatado, pd.DataFrame(contatos_fixos + contatos_adicionais)], ignore_index=True)
 
             st.success("Colunas selecionadas com sucesso!")
             st.subheader("Pré-visualização:")
             st.dataframe(df_formatado)
 
-            st.subheader("Resultado Formatado (texto com vírgula):")
-            resultado_texto = "\n".join(f"{row['name']}, {row['whatsapp']}" for _, row in df_formatado.iterrows())
-            st.code(resultado_texto, language="text")
-
+            # Botão de download ANTES do texto formatado
             csv = df_formatado.to_csv(index=False)
             st.download_button(
                 label="📥 Baixar CSV formatado",
@@ -137,6 +157,10 @@ if uploaded_file:
                 file_name="contatos_formatado.csv",
                 mime="text/csv"
             )
+
+            st.subheader("Resultado Formatado (texto com vírgula):")
+            resultado_texto = "\n".join(f"{row['name']}, {row['whatsapp']}" for _, row in df_formatado.iterrows())
+            st.code(resultado_texto, language="text")
         else:
             st.error("Selecione as colunas corretamente.")
     except Exception as e:
