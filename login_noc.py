@@ -260,7 +260,6 @@ if uploaded_file:
             contatos_fixos = [
                 {"name": "Daniel", "whatsapp": "(11) 9479-81529"},
                 {"name": "Mateus", "whatsapp": "(11) 99190-5547"},
-                {"name": "Leonel", "whatsapp": "(11) 91302-7842"},
                 {"name": "Matheus", "whatsapp": "(11) 94887-6252"},
             ]
             contatos_adicionais = st.session_state["novos_contatos"]
